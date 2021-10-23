@@ -36,9 +36,9 @@ func New(l *lexer.Lexer) *Parser {
 	p.registerPrefixParseFn(token.BANG, p.parsePrefixExpression)
 	p.registerPrefixParseFn(token.TRUE, p.parseBoolean)
 	p.registerPrefixParseFn(token.FALSE, p.parseBoolean)
-	//p.registerPrefixParseFn(token.LBRACE, p.parseGroupedExpression)
 	p.registerPrefixParseFn(token.LPAREN, p.parseGroupedExpression)
 	p.registerPrefixParseFn(token.IF, p.parseIfExpression)
+	p.registerPrefixParseFn(token.FUNCTION, p.parseFunctionLiteral)
 
 	p.infixParseFns = make(map[token.Type]infixParseFn)
 	p.registerInfixParseFn(token.EQ, p.parseInfixExpression)

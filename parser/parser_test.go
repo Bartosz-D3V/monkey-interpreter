@@ -251,11 +251,67 @@ func TestParseIfElseExpression(t *testing.T) {
 
 	consequence, ok := ifStmt.Consequence.Statements[0].(*ast.ExpressionStatement)
 	assert.True(t, ok)
-	testIdentifier(t, consequence.Expression, "x")
+	testLiteralExpression(t, consequence.Expression, "x")
 
 	alternative, ok := ifStmt.Alternative.Statements[0].(*ast.ExpressionStatement)
 	assert.True(t, ok)
-	testIdentifier(t, alternative.Expression, "y")
+	testLiteralExpression(t, alternative.Expression, "y")
+}
+
+func TestParseFunctionLiteral(t *testing.T) {
+	input := `fn(x, y) { x + y; }`
+
+	l := lexer.New(input)
+	p := New(l)
+	program := p.ParseProgram()
+	checkParseErrors(t, p)
+
+	assert.NotNil(t, program, "ParseProgram() returned nil")
+	assert.Equal(t, 1, len(program.Statements))
+
+	stmt, ok := program.Statements[0].(*ast.ExpressionStatement)
+	assert.True(t, ok)
+
+	fnStmt, ok := stmt.Expression.(*ast.FunctionLiteral)
+	assert.True(t, ok)
+
+	assert.Equal(t, 2, len(fnStmt.Parameters))
+	testLiteralExpression(t, fnStmt.Parameters[0], "x")
+	testLiteralExpression(t, fnStmt.Parameters[1], "y")
+
+	assert.Equal(t, 1, len(fnStmt.Body.Statements))
+	bodyExp, ok := fnStmt.Body.Statements[0].(*ast.ExpressionStatement)
+	testInfixExpression(t, bodyExp.Expression, "x", "+", "y")
+}
+
+func TestParseFunctionLiteralParams(t *testing.T) {
+	fnTests := []struct {
+		input     string
+		expParams []string
+	}{
+		{"fn(x,y){}", []string{"x", "y"}},
+		{"fn(x){}", []string{"x"}},
+		{"fn(){}", []string{}},
+	}
+	for _, tt := range fnTests {
+		input := tt.input
+
+		l := lexer.New(input)
+		p := New(l)
+		program := p.ParseProgram()
+		checkParseErrors(t, p)
+
+		stmt, ok := program.Statements[0].(*ast.ExpressionStatement)
+		assert.True(t, ok)
+
+		fnStmt, ok := stmt.Expression.(*ast.FunctionLiteral)
+		assert.True(t, ok)
+
+		assert.Equal(t, len(tt.expParams), len(fnStmt.Parameters))
+		for i, expParam := range tt.expParams {
+			testLiteralExpression(t, fnStmt.Parameters[i], expParam)
+		}
+	}
 }
 
 func TestOperatorPrecedenceParsing(t *testing.T) {
