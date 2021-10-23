@@ -14,12 +14,12 @@ const (
 )
 
 var precedences = map[token.Type]int{
-	token.EQ: EQUALS,
-	token.NEQ: EQUALS,
-	token.LT: LESS_GREATER,
-	token.GT: LESS_GREATER,
-	token.PLUS: SUM,
-	token.MINUS: SUM,
-	token.SLASH: PRODUCT,
+	token.EQ:       EQUALS,
+	token.NEQ:      EQUALS,
+	token.LT:       LESS_GREATER,
+	token.GT:       LESS_GREATER,
+	token.PLUS:     SUM,
+	token.MINUS:    SUM,
+	token.SLASH:    PRODUCT,
 	token.ASTERISK: PRODUCT,
 }
