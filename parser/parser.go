@@ -49,6 +49,7 @@ func New(l *lexer.Lexer) *Parser {
 	p.registerInfixParseFn(token.MINUS, p.parseInfixExpression)
 	p.registerInfixParseFn(token.SLASH, p.parseInfixExpression)
 	p.registerInfixParseFn(token.ASTERISK, p.parseInfixExpression)
+	p.registerInfixParseFn(token.LPAREN, p.parseCallExpression)
 
 	// Read 2 consecutive tokens so cur and peek tokens are set
 	p.nextToken()

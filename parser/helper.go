@@ -165,6 +165,39 @@ func (p *Parser) parseInfixExpression(left ast.Expression) ast.Expression {
 	return exp
 }
 
+func (p *Parser) parseCallExpression(fn ast.Expression) ast.Expression {
+	callExp := &ast.CallExpression{
+		Token:    p.curToken,
+		Function: fn,
+	}
+	callExp.Arguments = p.parseCallArguments()
+	return callExp
+}
+
+func (p *Parser) parseCallArguments() []ast.Expression {
+	var args []ast.Expression
+
+	if p.peekTokenIs(token.RPAREN) {
+		p.nextToken()
+		return args
+	}
+	p.nextToken()
+
+	args = append(args, p.parseExpression(LOWEST))
+
+	for p.peekTokenIs(token.COMMA) {
+		p.nextToken()
+		p.nextToken()
+		args = append(args, p.parseExpression(LOWEST))
+	}
+
+	if !p.expectPeek(token.RPAREN) {
+		return nil
+	}
+
+	return args
+}
+
 func (p *Parser) parseIfExpression() ast.Expression {
 	exp := &ast.IfExpression{
 		Token: p.curToken,
