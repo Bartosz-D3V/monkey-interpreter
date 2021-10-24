@@ -36,7 +36,10 @@ func (p *Parser) parseLetStatement() ast.Statement {
 		return nil
 	}
 
-	//TODO For now we're skipping tokens until semicolon
+	p.nextToken()
+
+	stmt.Value = p.parseExpression(LOWEST)
+
 	for !p.curTokenIs(token.SEMICOLON) {
 		p.nextToken()
 	}
@@ -49,7 +52,10 @@ func (p *Parser) parseReturnStatement() ast.Statement {
 		Token: p.curToken,
 	}
 
-	//TODO For now we're skipping tokens until semicolon
+	p.nextToken()
+
+	stmt.ReturnValue = p.parseExpression(LOWEST)
+
 	for !p.curTokenIs(token.SEMICOLON) {
 		p.nextToken()
 	}
@@ -63,7 +69,6 @@ func (p *Parser) parseExpressionStatement() *ast.ExpressionStatement {
 	}
 	stmt.Expression = p.parseExpression(LOWEST)
 
-	//TODO For now we're skipping tokens until semicolon
 	if p.peekTokenIs(token.SEMICOLON) {
 		p.nextToken()
 	}

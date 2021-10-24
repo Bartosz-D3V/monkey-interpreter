@@ -9,57 +9,54 @@ import (
 )
 
 func TestLetStatements(t *testing.T) {
-	in := `
-		let x = 5;
-		let y = 10;
-		let foobar = 83883;
-	`
-	l := lexer.New(in)
-	p := New(l)
-	program := p.ParseProgram()
-	checkParseErrors(t, p)
-
-	assert.NotNil(t, program, "ParseProgram() returned nil")
-	assert.Equal(t, 3, len(program.Statements))
-
 	tests := []struct {
-		expectedIdentifier string
+		input         string
+		expIdentifier string
+		expValue      interface{}
 	}{
-		{"x"},
-		{"y"},
-		{"foobar"},
+		{"let x = 5;", "x", 5},
+		{"let y = 10;", "y", 10},
+		{"let foobar = true;", "foobar", true},
 	}
-	for i, test := range tests {
-		stmt := program.Statements[i]
-		assert.Equal(t, "let", stmt.TokenLiteral())
 
-		letStmt, ok := stmt.(*ast.LetStatement)
-		assert.True(t, ok)
-		assert.Equal(t, test.expectedIdentifier, letStmt.Name.Value)
-		assert.Equal(t, test.expectedIdentifier, letStmt.Name.TokenLiteral())
+	for _, test := range tests {
+		l := lexer.New(test.input)
+		p := New(l)
+		program := p.ParseProgram()
+		checkParseErrors(t, p)
+
+		assert.NotNil(t, program, "ParseProgram() returned nil")
+		assert.Equal(t, 1, len(program.Statements))
+		letStatement := program.Statements[0].(*ast.LetStatement)
+		assert.Equal(t, "let", letStatement.TokenLiteral())
+		assert.Equal(t, test.expIdentifier, letStatement.Name.TokenLiteral())
+
+		val := letStatement.Value
+		testLiteralExpression(t, val, test.expValue)
 	}
 }
 
 func TestReturnStatements(t *testing.T) {
-	in := `
-		return 5;
-		return 10;
-		return 83883;
-	`
-	l := lexer.New(in)
-	p := New(l)
-	program := p.ParseProgram()
-	checkParseErrors(t, p)
+	tests := []struct {
+		input    string
+		expValue interface{}
+	}{
+		{"return 5;", 5},
+		{"return 10;", 10},
+		{"return true;", true},
+	}
 
-	assert.NotNil(t, program, "ParseProgram() returned nil")
-	assert.Equal(t, 3, len(program.Statements))
+	for _, test := range tests {
+		l := lexer.New(test.input)
+		p := New(l)
+		program := p.ParseProgram()
+		checkParseErrors(t, p)
 
-	for _, stmt := range program.Statements {
-		assert.Equal(t, "return", stmt.TokenLiteral())
-
-		returnStmt, ok := stmt.(*ast.ReturnStatement)
-		assert.True(t, ok)
-		assert.Equal(t, "return", returnStmt.TokenLiteral())
+		assert.NotNil(t, program, "ParseProgram() returned nil")
+		assert.Equal(t, 1, len(program.Statements))
+		returnStatement := program.Statements[0].(*ast.ReturnStatement)
+		assert.Equal(t, "return", returnStatement.TokenLiteral())
+		testLiteralExpression(t, returnStatement.ReturnValue, test.expValue)
 	}
 }
 
