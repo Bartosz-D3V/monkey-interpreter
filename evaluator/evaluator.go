@@ -24,6 +24,10 @@ func Eval(node ast.Node) object.Object {
 		left := Eval(node.LeftValue)
 		right := Eval(node.RightValue)
 		return evalInfixExpression(left, node.Operator, right)
+	case *ast.BlockStatement:
+		return evalStatements(node.Statements)
+	case *ast.IfExpression:
+		return evalIfExpression(node)
 	case *ast.IntegerLiteral:
 		return &object.Integer{Value: node.Value}
 	case *ast.Boolean:

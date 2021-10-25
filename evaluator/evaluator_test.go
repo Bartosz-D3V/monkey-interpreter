@@ -107,3 +107,35 @@ func testBooleanObject(t *testing.T, obj object.Object, exp bool) {
 	assert.True(t, ok)
 	assert.Equal(t, exp, res.Value)
 }
+
+func TestIfElseExpression(t *testing.T) {
+	tests := []struct {
+		input    string
+		expected interface{}
+	}{
+		{"if (true) { 10 }", 10},
+		{"if (false) { 10 }", nil},
+		{"if (1) { 10 }", 10},
+		{"if (1 < 2) { 10 }", 10},
+		{"if (1 > 2) { 10 }", nil},
+		{"if (1 > 2) { 10 } else { 20 }", 20},
+		{"if (1 < 2) { 10 } else { 20 }", 10},
+	}
+	for _, test := range tests {
+		l := lexer.New(test.input)
+		p := parser.New(l)
+		program := p.ParseProgram()
+		eval := Eval(program)
+
+		integer, ok := eval.(*object.Integer)
+		if ok {
+			testIntegerObject(t, integer, int64(test.expected.(int)))
+		} else {
+			testNullObject(t, eval)
+		}
+	}
+}
+
+func testNullObject(t *testing.T, obj object.Object) {
+	assert.True(t, obj == NULL)
+}
