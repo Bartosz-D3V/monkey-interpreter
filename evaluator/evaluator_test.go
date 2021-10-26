@@ -169,3 +169,55 @@ func TestReturnExpression(t *testing.T) {
 		testIntegerObject(t, eval, 10)
 	}
 }
+
+func TestErrorHandling(t *testing.T) {
+	tests := []struct {
+		input  string
+		expMsg string
+	}{
+		{
+			"5 + true;",
+			"type mismatch: INTEGER + BOOLEAN",
+		},
+		{
+			"5 + true; 5;",
+			"type mismatch: INTEGER + BOOLEAN",
+		},
+		{
+			"-true",
+			"unknown operator: -BOOLEAN",
+		},
+		{
+			"true + false;",
+			"unknown operator: BOOLEAN + BOOLEAN",
+		},
+		{
+			"5; true + false; 5",
+			"unknown operator: BOOLEAN + BOOLEAN",
+		},
+		{
+			"if (10 > 1) { true + false; }",
+			"unknown operator: BOOLEAN + BOOLEAN",
+		},
+		{
+			`if (10 > 1) {
+				if (10 > 1) {
+					return true + false;
+				}
+				return 1;
+			}`,
+			"unknown operator: BOOLEAN + BOOLEAN",
+		},
+	}
+
+	for _, test := range tests {
+		l := lexer.New(test.input)
+		p := parser.New(l)
+		program := p.ParseProgram()
+		eval := Eval(program)
+
+		errObj, ok := eval.(*object.Error)
+		assert.True(t, ok)
+		assert.Equal(t, test.expMsg, errObj.Message)
+	}
+}
