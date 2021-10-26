@@ -12,12 +12,28 @@ func booleanToNativeBoolean(val bool) object.Object {
 	return FALSE
 }
 
-func evalStatements(statements []ast.Statement) object.Object {
+func evalProgram(program *ast.Program) object.Object {
 	var result object.Object
-	for _, statement := range statements {
+	for _, statement := range program.Statements {
 		result = Eval(statement)
+
+		if returnVal, ok := result.(*object.ReturnValue); ok {
+			return returnVal.Value
+		}
 	}
 
+	return result
+}
+
+func evalBlockStatement(node *ast.BlockStatement) object.Object {
+	var result object.Object
+	for _, statement := range node.Statements {
+		result = Eval(statement)
+
+		if result != nil && result.Type() == object.ReturnValueObj {
+			return result
+		}
+	}
 	return result
 }
 
