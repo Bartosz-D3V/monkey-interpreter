@@ -13,10 +13,10 @@ func booleanToNativeBoolean(val bool) object.Object {
 	return FALSE
 }
 
-func evalProgram(program *ast.Program) object.Object {
+func evalProgram(program *ast.Program, env *object.Environment) object.Object {
 	var result object.Object
 	for _, statement := range program.Statements {
-		result = Eval(statement)
+		result = Eval(statement, env)
 
 		switch result := result.(type) {
 		case *object.Error:
@@ -29,10 +29,10 @@ func evalProgram(program *ast.Program) object.Object {
 	return result
 }
 
-func evalBlockStatement(node *ast.BlockStatement) object.Object {
+func evalBlockStatement(node *ast.BlockStatement, env *object.Environment) object.Object {
 	var result object.Object
 	for _, statement := range node.Statements {
-		result = Eval(statement)
+		result = Eval(statement, env)
 
 		if result != nil && (result.Type() == object.ReturnValueObj || result.Type() == object.ErrorObj) {
 			return result
@@ -117,15 +117,15 @@ func evalIntegerInfixExpression(left object.Object, operator string, right objec
 	}
 }
 
-func evalIfExpression(node *ast.IfExpression) object.Object {
-	condition := Eval(node.Condition)
+func evalIfExpression(node *ast.IfExpression, env *object.Environment) object.Object {
+	condition := Eval(node.Condition, env)
 	if isError(condition) {
 		return condition
 	}
 	if isTruthy(condition) {
-		return Eval(node.Consequence)
+		return Eval(node.Consequence, env)
 	} else if node.Alternative != nil {
-		return Eval(node.Alternative)
+		return Eval(node.Alternative, env)
 	} else {
 		return NULL
 	}
@@ -153,4 +153,13 @@ func isError(obj object.Object) bool {
 		return obj.Type() == object.ErrorObj
 	}
 	return false
+}
+
+func evalIdentifier(node *ast.Identifier, env *object.Environment) object.Object {
+	val, ok := env.Get(node.Value)
+	if !ok {
+		return newError("identifier not found: %s", node.Value)
+	}
+
+	return val
 }

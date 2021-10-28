@@ -6,6 +6,7 @@ import (
 	"io"
 	"monkey_interpreter/evaluator"
 	"monkey_interpreter/lexer"
+	"monkey_interpreter/object"
 	"monkey_interpreter/parser"
 )
 
@@ -23,12 +24,13 @@ func Start(in io.Reader, out io.Writer) {
 		l := lexer.New(code)
 		p := parser.New(l)
 		program := p.ParseProgram()
+		env := object.NewEnvironment()
 
 		if len(p.Error()) > 0 {
 			printParseError(out, p.Error())
 		}
 
-		evaluated := evaluator.Eval(program)
+		evaluated := evaluator.Eval(program, env)
 		if evaluated != nil {
 			_, _ = io.WriteString(out, evaluated.Inspect())
 			_, _ = io.WriteString(out, "\n")

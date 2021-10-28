@@ -33,7 +33,8 @@ func TestEvalIntegerExpression(t *testing.T) {
 		l := lexer.New(test.input)
 		p := parser.New(l)
 		program := p.ParseProgram()
-		eval := Eval(program)
+		env := object.NewEnvironment()
+		eval := Eval(program, env)
 
 		testIntegerObject(t, eval, test.expected)
 	}
@@ -74,7 +75,8 @@ func TestEvalBooleanExpression(t *testing.T) {
 		l := lexer.New(test.input)
 		p := parser.New(l)
 		program := p.ParseProgram()
-		eval := Eval(program)
+		env := object.NewEnvironment()
+		eval := Eval(program, env)
 
 		testBooleanObject(t, eval, test.expected)
 	}
@@ -96,7 +98,8 @@ func TestBangOperator(t *testing.T) {
 		l := lexer.New(test.input)
 		p := parser.New(l)
 		program := p.ParseProgram()
-		eval := Eval(program)
+		env := object.NewEnvironment()
+		eval := Eval(program, env)
 
 		testBooleanObject(t, eval, test.expected)
 	}
@@ -125,7 +128,8 @@ func TestIfElseExpression(t *testing.T) {
 		l := lexer.New(test.input)
 		p := parser.New(l)
 		program := p.ParseProgram()
-		eval := Eval(program)
+		env := object.NewEnvironment()
+		eval := Eval(program, env)
 
 		integer, ok := eval.(*object.Integer)
 		if ok {
@@ -164,7 +168,8 @@ func TestReturnExpression(t *testing.T) {
 		l := lexer.New(test.input)
 		p := parser.New(l)
 		program := p.ParseProgram()
-		eval := Eval(program)
+		env := object.NewEnvironment()
+		eval := Eval(program, env)
 
 		testIntegerObject(t, eval, 10)
 	}
@@ -208,16 +213,42 @@ func TestErrorHandling(t *testing.T) {
 			}`,
 			"unknown operator: BOOLEAN + BOOLEAN",
 		},
+		{
+			"foobar;",
+			"identifier not found: foobar",
+		},
 	}
 
 	for _, test := range tests {
 		l := lexer.New(test.input)
 		p := parser.New(l)
 		program := p.ParseProgram()
-		eval := Eval(program)
+		env := object.NewEnvironment()
+		eval := Eval(program, env)
 
 		errObj, ok := eval.(*object.Error)
 		assert.True(t, ok)
 		assert.Equal(t, test.expMsg, errObj.Message)
+	}
+}
+
+func TestLetStatements(t *testing.T) {
+	tests := []struct {
+		input string
+		exp   int64
+	}{
+		{"let a = 5; a;", 5},
+		{"let a = 5 * 5; a;", 25},
+		{"let a = 5; let b = a; b;", 5},
+		{"let a = 5; let b = a; let c = a + b + 5; c;", 15},
+	}
+	for _, test := range tests {
+		l := lexer.New(test.input)
+		p := parser.New(l)
+		program := p.ParseProgram()
+		env := object.NewEnvironment()
+		eval := Eval(program, env)
+
+		testIntegerObject(t, eval, test.exp)
 	}
 }
