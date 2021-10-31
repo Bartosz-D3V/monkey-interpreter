@@ -292,3 +292,17 @@ func TestFunctionApplication(t *testing.T) {
 		testIntegerObject(t, eval, test.exp)
 	}
 }
+
+func TestStringLiteral(t *testing.T) {
+	input := `"Hello, World!"`
+	l := lexer.New(input)
+	p := parser.New(l)
+	program := p.ParseProgram()
+	env := object.NewEnvironment()
+	eval := Eval(program, env)
+
+	strObj, ok := eval.(*object.String)
+	assert.True(t, ok)
+
+	assert.Equal(t, "Hello, World!", strObj.Value)
+}

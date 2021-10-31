@@ -44,6 +44,9 @@ func (l *Lexer) NextToken() token.Token {
 		tk = token.Token{Type: token.COMMA, Literal: string(ch)}
 	case ';':
 		tk = token.Token{Type: token.SEMICOLON, Literal: string(ch)}
+	case '"':
+		value := l.readString()
+		tk = token.Token{Type: token.STRING, Literal: value}
 	case '!':
 		if l.input[l.readPosition] == '=' {
 			logicOp := l.readLogicOp()

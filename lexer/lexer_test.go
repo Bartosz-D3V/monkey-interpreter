@@ -68,6 +68,8 @@ func TestLexer_NextToken_Full(t *testing.T) {
 
 		10 == 10;
 		10 != 91;
+		"foobar"
+		"foo bar"
 	`
 	tests := []struct {
 		ExpectedType    token.Type
@@ -158,6 +160,9 @@ func TestLexer_NextToken_Full(t *testing.T) {
 		{ExpectedType: token.NEQ, ExpectedLiteral: "!="},
 		{ExpectedType: token.INT, ExpectedLiteral: "91"},
 		{ExpectedType: token.SEMICOLON, ExpectedLiteral: ";"},
+
+		{ExpectedType: token.STRING, ExpectedLiteral: "foobar"},
+		{ExpectedType: token.STRING, ExpectedLiteral: "foo bar"},
 
 		{ExpectedType: token.EOF, ExpectedLiteral: ""},
 	}

@@ -55,3 +55,15 @@ func isChar(ch byte) bool {
 func isDigit(ch byte) bool {
 	return '0' <= ch && ch <= '9'
 }
+
+func (l *Lexer) readString() string {
+	sPost := l.position + 1
+	l.readChar()
+	for {
+		l.readChar()
+		if l.ch == '"' || l.ch == 0 {
+			break
+		}
+	}
+	return l.input[sPost:l.position]
+}

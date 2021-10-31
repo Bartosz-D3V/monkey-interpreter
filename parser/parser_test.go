@@ -127,6 +127,26 @@ func TestIntegerLiteral_Expression(t *testing.T) {
 	assert.Equal(t, "5", identStmt.TokenLiteral())
 }
 
+func TestStringLiteral_Expression(t *testing.T) {
+	in := `"Hello, World!"`
+	l := lexer.New(in)
+	p := New(l)
+	program := p.ParseProgram()
+	checkParseErrors(t, p)
+
+	assert.NotNil(t, program, "ParseProgram() returned nil")
+	assert.Equal(t, 1, len(program.Statements))
+
+	stmt, ok := program.Statements[0].(*ast.ExpressionStatement)
+	assert.True(t, ok)
+
+	str, ok := stmt.Expression.(*ast.StringLiteral)
+	assert.True(t, ok)
+
+	assert.Equal(t, "Hello, World!", str.Value)
+	assert.Equal(t, "Hello, World!", str.TokenLiteral())
+}
+
 func TestParsePrefixExpression(t *testing.T) {
 	prefixTests := []struct {
 		input    string
