@@ -163,3 +163,41 @@ func evalIdentifier(node *ast.Identifier, env *object.Environment) object.Object
 
 	return val
 }
+
+func evalExpressions(args []ast.Expression, env *object.Environment) []object.Object {
+	var evals []object.Object
+
+	for _, arg := range args {
+		eval := Eval(arg, env)
+		if isError(eval) {
+			return []object.Object{eval}
+		}
+		evals = append(evals, eval)
+	}
+	return evals
+}
+
+func applyFunction(fn object.Object, args []object.Object) object.Object {
+	function, ok := fn.(*object.Function)
+	if !ok {
+		return newError("not a function %s", fn.Type())
+	}
+	extendedEnv := extendedFunctionEnv(function, args)
+	evaluated := Eval(function.Body, extendedEnv)
+	return unwrapValue(evaluated)
+}
+
+func extendedFunctionEnv(function *object.Function, args []object.Object) *object.Environment {
+	env := object.NewEnclosedEnvironment(function.Env)
+	for i, param := range function.Parameters {
+		env.Set(param.Value, args[i])
+	}
+	return env
+}
+
+func unwrapValue(obj object.Object) object.Object {
+	if returnValue, ok := obj.(*object.ReturnValue); ok {
+		return returnValue
+	}
+	return obj
+}

@@ -55,6 +55,24 @@ func Eval(node ast.Node, env *object.Environment) object.Object {
 		return &object.Integer{Value: node.Value}
 	case *ast.Boolean:
 		return booleanToNativeBoolean(node.Value)
+	case *ast.FunctionLiteral:
+		params := node.Parameters
+		body := node.Body
+		return &object.Function{
+			Parameters: params,
+			Body:       body,
+			Env:        env,
+		}
+	case *ast.CallExpression:
+		function := Eval(node.Function, env)
+		if isError(function) {
+			return function
+		}
+		args := evalExpressions(node.Arguments, env)
+		if len(args) == 1 && isError(args[0]) {
+			return args[0]
+		}
+		return applyFunction(function, args)
 	}
 	return nil
 }

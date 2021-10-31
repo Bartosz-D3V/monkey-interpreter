@@ -252,3 +252,43 @@ func TestLetStatements(t *testing.T) {
 		testIntegerObject(t, eval, test.exp)
 	}
 }
+
+func TestFunctionObject(t *testing.T) {
+	input := "fn(x) { x + 2; };"
+	l := lexer.New(input)
+	p := parser.New(l)
+	program := p.ParseProgram()
+	env := object.NewEnvironment()
+	eval := Eval(program, env)
+
+	fn, ok := eval.(*object.Function)
+	assert.True(t, ok)
+
+	assert.Equal(t, 1, len(fn.Parameters))
+	assert.Equal(t, "x", fn.Parameters[0].String())
+	assert.Equal(t, "(x + 2)", fn.Body.String())
+}
+
+func TestFunctionApplication(t *testing.T) {
+	tests := []struct {
+		input string
+		exp   int64
+	}{
+		{"let identity = fn(x) { x; }; identity(5);", 5},
+		{"let identity = fn(x) { return x; }; identity(5);", 5},
+		{"let double = fn(x) { x * 2; }; double(5);", 10},
+		{"let add = fn(x, y) { x + y; }; add(5, 5);", 10},
+		{"let add = fn(x, y) { x + y; }; add(5 + 5, add(5, 5));", 20},
+		{"fn(x) { x; }(5)", 5},
+	}
+
+	for _, test := range tests {
+		l := lexer.New(test.input)
+		p := parser.New(l)
+		program := p.ParseProgram()
+		env := object.NewEnvironment()
+		eval := Eval(program, env)
+
+		testIntegerObject(t, eval, test.exp)
+	}
+}

@@ -8,4 +8,5 @@ const (
 	NullObj        = "NULL"
 	ReturnValueObj = "RETURN_VALUE"
 	ErrorObj       = "ERROR"
+	FunctionObj    = "FUNCTION"
 )
