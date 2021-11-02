@@ -306,3 +306,60 @@ func TestStringLiteral(t *testing.T) {
 
 	assert.Equal(t, "Hello, World!", strObj.Value)
 }
+
+func TestStringConcatenation(t *testing.T) {
+	input := `"Hello" + ", " + "World!"`
+	l := lexer.New(input)
+	p := parser.New(l)
+	program := p.ParseProgram()
+	env := object.NewEnvironment()
+	eval := Eval(program, env)
+
+	strObj, ok := eval.(*object.String)
+	assert.True(t, ok)
+
+	assert.Equal(t, "Hello, World!", strObj.Value)
+}
+
+func TestStringConcatenationErrorHandling(t *testing.T) {
+	input := `"Hello" - ", " - "World!""`
+	l := lexer.New(input)
+	p := parser.New(l)
+	program := p.ParseProgram()
+	env := object.NewEnvironment()
+	eval := Eval(program, env)
+
+	errObj, ok := eval.(*object.Error)
+	assert.True(t, ok)
+
+	assert.Equal(t, "unknown operator: STRING - STRING", errObj.Message)
+}
+
+func TestBuiltInFunctions(t *testing.T) {
+	tests := []struct {
+		input string
+		exp   interface{}
+	}{
+		{`len("")`, 0},
+		{`len("four")`, 4},
+		{`len("hello world")`, 11},
+		{`len(1)`, "argument to `len` not supported, got INTEGER"},
+		{`len("one", "two")`, "wrong number of arguments. got=2, want=1"},
+	}
+	for _, test := range tests {
+		l := lexer.New(test.input)
+		p := parser.New(l)
+		program := p.ParseProgram()
+		env := object.NewEnvironment()
+		eval := Eval(program, env)
+
+		switch expected := test.exp.(type) {
+		case int:
+			testIntegerObject(t, eval, int64(expected))
+		case string:
+			errObj, ok := eval.(*object.Error)
+			assert.True(t, ok)
+			assert.Equal(t, test.exp, errObj.Message)
+		}
+	}
+}

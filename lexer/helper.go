@@ -58,7 +58,6 @@ func isDigit(ch byte) bool {
 
 func (l *Lexer) readString() string {
 	sPost := l.position + 1
-	l.readChar()
 	for {
 		l.readChar()
 		if l.ch == '"' || l.ch == 0 {
