@@ -477,12 +477,16 @@ func TestIndexExpression(t *testing.T) {
 func testLiteralExpression(t *testing.T, exp ast.Expression, expected interface{}) {
 	switch v := expected.(type) {
 	case int:
+		testIntegerLiteral(t, int64(v), exp)
 	case int64:
 		testIntegerLiteral(t, v, exp)
 	case string:
 		testIdentifier(t, exp, v)
 	case bool:
 		testBoolean(t, exp, v)
+	default:
+		t.Errorf("unknown type. got: %s", expected)
+		t.FailNow()
 	}
 }
 
@@ -493,6 +497,88 @@ func testInfixExpression(t *testing.T, exp ast.Expression, left interface{}, op 
 	testLiteralExpression(t, opExp.LeftValue, left)
 	testLiteralExpression(t, opExp.RightValue, right)
 	assert.Equal(t, opExp.Operator, op)
+}
+
+func TestParsingHashLiteralStringKeys(t *testing.T) {
+	input := `{"one": 1, "two": 2, "three": 3}`
+	l := lexer.New(input)
+	p := New(l)
+	program := p.ParseProgram()
+	checkParseErrors(t, p)
+
+	assert.NotNil(t, program, "ParseProgram() returned nil")
+	assert.Equal(t, 1, len(program.Statements))
+
+	stmt, ok := program.Statements[0].(*ast.ExpressionStatement)
+	assert.True(t, ok)
+
+	hashLit, ok := stmt.Expression.(*ast.HashLiteral)
+	assert.True(t, ok)
+
+	exp := map[string]int64{
+		"one":   1,
+		"two":   2,
+		"three": 3,
+	}
+	for key, val := range hashLit.Pairs {
+		assert.Equal(t, exp[key.(*ast.StringLiteral).Value], val.(*ast.IntegerLiteral).Value)
+	}
+}
+
+func TestParsingEmptyHashLiteral(t *testing.T) {
+	input := `{}`
+	l := lexer.New(input)
+	p := New(l)
+	program := p.ParseProgram()
+	checkParseErrors(t, p)
+
+	assert.NotNil(t, program, "ParseProgram() returned nil")
+	assert.Equal(t, 1, len(program.Statements))
+
+	stmt, ok := program.Statements[0].(*ast.ExpressionStatement)
+	assert.True(t, ok)
+
+	hashLit, ok := stmt.Expression.(*ast.HashLiteral)
+	assert.True(t, ok)
+
+	assert.NotNil(t, 0, hashLit.Pairs)
+	assert.Equal(t, 0, len(hashLit.Pairs))
+}
+
+func TestParsingHashLiteralWithExpressions(t *testing.T) {
+	input := `{"one": 1 + 1, "two": 2 * 2, "three": 3 / 3}`
+	l := lexer.New(input)
+	p := New(l)
+	program := p.ParseProgram()
+	checkParseErrors(t, p)
+
+	assert.NotNil(t, program, "ParseProgram() returned nil")
+	assert.Equal(t, 1, len(program.Statements))
+
+	stmt, ok := program.Statements[0].(*ast.ExpressionStatement)
+	assert.True(t, ok)
+
+	hashLit, ok := stmt.Expression.(*ast.HashLiteral)
+	assert.True(t, ok)
+
+	exp := map[string]func(expression ast.Expression){
+		"one": func(exp ast.Expression) {
+			testInfixExpression(t, exp, 1, "+", 1)
+		},
+		"two": func(exp ast.Expression) {
+			testInfixExpression(t, exp, 2, "*", 2)
+		},
+		"three": func(exp ast.Expression) {
+			testInfixExpression(t, exp, 3, "/", 3)
+		},
+	}
+	for key, val := range hashLit.Pairs {
+		keyStmt, ok := key.(*ast.StringLiteral)
+		assert.True(t, ok)
+
+		testFn := exp[keyStmt.Value]
+		testFn(val)
+	}
 }
 
 func testIntegerLiteral(t *testing.T, val int64, right ast.Expression) {

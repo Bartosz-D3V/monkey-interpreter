@@ -71,6 +71,7 @@ func TestLexer_NextToken_Full(t *testing.T) {
 		"foobar"
 		"foo bar"
 		[1, 2]
+		{"foo": "bar"}
 	`
 	tests := []struct {
 		ExpectedType    token.Type
@@ -170,6 +171,12 @@ func TestLexer_NextToken_Full(t *testing.T) {
 		{ExpectedType: token.COMMA, ExpectedLiteral: ","},
 		{ExpectedType: token.INT, ExpectedLiteral: "2"},
 		{ExpectedType: token.RBRACKET, ExpectedLiteral: "]"},
+
+		{ExpectedType: token.LBRACE, ExpectedLiteral: "{"},
+		{ExpectedType: token.STRING, ExpectedLiteral: "foo"},
+		{ExpectedType: token.COLON, ExpectedLiteral: ":"},
+		{ExpectedType: token.STRING, ExpectedLiteral: "bar"},
+		{ExpectedType: token.RBRACE, ExpectedLiteral: "}"},
 
 		{ExpectedType: token.EOF, ExpectedLiteral: ""},
 	}

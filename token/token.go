@@ -46,6 +46,7 @@ const (
 	ASTERISK = "*"
 	LT       = "<"
 	GT       = ">"
+	COLON    = ":"
 
 	/*
 		KEYWORDS
