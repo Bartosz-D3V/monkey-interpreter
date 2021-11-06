@@ -343,6 +343,12 @@ func TestBuiltInFunctions(t *testing.T) {
 		{`len("")`, 0},
 		{`len("four")`, 4},
 		{`len("hello world")`, 11},
+		{`len([1, 2, 3, 4, 5 * 5 + 5])`, 5},
+		{`let arr = []; len(arr)`, 0},
+		{`first([1, 2, 3, 4, 5 * 5 + 5])`, 1},
+		{`last([1, 2, 3, 4, 5 * 5 + 5])`, 30},
+		{`let a = [1, 2, 3, 4]; rest(a)`, []int{2, 3, 4}},
+		{`let a = [1, 2, 3, 4]; let b = push(a, 5); push(b, 6)`, []int{1, 2, 3, 4, 5, 6}},
 		{`len(1)`, "argument to `len` not supported, got INTEGER"},
 		{`len("one", "two")`, "wrong number of arguments. got=2, want=1"},
 	}
@@ -356,6 +362,13 @@ func TestBuiltInFunctions(t *testing.T) {
 		switch expected := test.exp.(type) {
 		case int:
 			testIntegerObject(t, eval, int64(expected))
+		case []int:
+			arr := eval.(*object.Array)
+			var arrVals []int
+			for _, elem := range arr.Elements {
+				arrVals = append(arrVals, int(elem.(*object.Integer).Value))
+			}
+			assert.ElementsMatch(t, test.exp, arrVals)
 		case string:
 			errObj, ok := eval.(*object.Error)
 			assert.True(t, ok)
