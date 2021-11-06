@@ -222,3 +222,23 @@ func unwrapValue(obj object.Object) object.Object {
 	}
 	return obj
 }
+
+func evalIndexExpression(left, index object.Object) object.Object {
+	switch {
+	case left.Type() == object.ArrayObj && index.Type() == object.IntegerObj:
+		return evalIntegerIndexExpression(left, index)
+	default:
+		return newError("index operator not supported: %s", left.Type())
+	}
+}
+
+func evalIntegerIndexExpression(array, index object.Object) object.Object {
+	arr := array.(*object.Array)
+	idx := index.(*object.Integer).Value
+
+	maxIdx := int64(len(arr.Elements) - 1)
+	if idx < 0 || idx > maxIdx {
+		return NULL
+	}
+	return arr.Elements[idx]
+}

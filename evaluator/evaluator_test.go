@@ -363,3 +363,58 @@ func TestBuiltInFunctions(t *testing.T) {
 		}
 	}
 }
+
+func TestArrayLiterals(t *testing.T) {
+	input := `[1, 2 + 2, 3 * 3, 4 / 2]`
+	l := lexer.New(input)
+	p := parser.New(l)
+	program := p.ParseProgram()
+	env := object.NewEnvironment()
+	eval := Eval(program, env)
+
+	arrObj, ok := eval.(*object.Array)
+	assert.True(t, ok)
+
+	assert.Equal(t, 4, len(arrObj.Elements))
+	testIntegerObject(t, arrObj.Elements[0], 1)
+	testIntegerObject(t, arrObj.Elements[1], 4)
+	testIntegerObject(t, arrObj.Elements[2], 9)
+	testIntegerObject(t, arrObj.Elements[3], 2)
+}
+
+func TestArrayIndexExpression(t *testing.T) {
+	tests := []struct {
+		input string
+		exp   int
+	}{
+		{
+			"[0, 2, 3][0]",
+			0,
+		},
+		{
+			"[0, 2, 3][1]",
+			2,
+		},
+		{
+			"[0, 2 + 2, 3 * 3][2]",
+			9,
+		},
+		{
+			"let myArray = [1, 2 * 2, 3]; myArray[0] + myArray[1] + myArray[2];",
+			8,
+		},
+		{
+			"let myArray = [1, 2, 3]; let i = myArray[0]; myArray[i]",
+			2,
+		},
+	}
+	for _, test := range tests {
+		l := lexer.New(test.input)
+		p := parser.New(l)
+		program := p.ParseProgram()
+		env := object.NewEnvironment()
+		eval := Eval(program, env)
+
+		testIntegerObject(t, eval, int64(test.exp))
+	}
+}

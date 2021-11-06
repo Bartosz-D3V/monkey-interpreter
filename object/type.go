@@ -11,4 +11,5 @@ const (
 	FunctionObj    = "FUNCTION"
 	StringObj      = "STRING"
 	BuiltInObj     = "BUILTIN"
+	ArrayObj       = "ARRAY"
 )

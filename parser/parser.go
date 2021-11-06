@@ -40,6 +40,7 @@ func New(l *lexer.Lexer) *Parser {
 	p.registerPrefixParseFn(token.IF, p.parseIfExpression)
 	p.registerPrefixParseFn(token.FUNCTION, p.parseFunctionLiteral)
 	p.registerPrefixParseFn(token.STRING, p.parseStringLiteral)
+	p.registerPrefixParseFn(token.LBRACKET, p.parseArrayLiteral)
 
 	p.infixParseFns = make(map[token.Type]infixParseFn)
 	p.registerInfixParseFn(token.EQ, p.parseInfixExpression)
@@ -51,6 +52,7 @@ func New(l *lexer.Lexer) *Parser {
 	p.registerInfixParseFn(token.SLASH, p.parseInfixExpression)
 	p.registerInfixParseFn(token.ASTERISK, p.parseInfixExpression)
 	p.registerInfixParseFn(token.LPAREN, p.parseCallExpression)
+	p.registerInfixParseFn(token.LBRACKET, p.parseIndexExpression)
 
 	// Read 2 consecutive tokens so cur and peek tokens are set
 	p.nextToken()

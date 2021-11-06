@@ -75,6 +75,24 @@ func Eval(node ast.Node, env *object.Environment) object.Object {
 			return args[0]
 		}
 		return applyFunction(function, args)
+	case *ast.ArrayLiteral:
+		arr := evalExpressions(node.Elements, env)
+		if len(arr) == 1 && isError(arr[0]) {
+			return arr[0]
+		}
+		return &object.Array{
+			Elements: arr,
+		}
+	case *ast.IndexExpression:
+		left := Eval(node.Left, env)
+		if isError(left) {
+			return left
+		}
+		idx := Eval(node.Index, env)
+		if isError(idx) {
+			return idx
+		}
+		return evalIndexExpression(left, idx)
 	}
 	return nil
 }
