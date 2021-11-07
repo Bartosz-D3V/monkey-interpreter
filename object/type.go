@@ -12,4 +12,5 @@ const (
 	StringObj      = "STRING"
 	BuiltInObj     = "BUILTIN"
 	ArrayObj       = "ARRAY"
+	HashObj        = "HASH"
 )

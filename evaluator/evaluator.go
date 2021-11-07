@@ -93,6 +93,8 @@ func Eval(node ast.Node, env *object.Environment) object.Object {
 			return idx
 		}
 		return evalIndexExpression(left, idx)
+	case *ast.HashLiteral:
+		return evalHashLiteral(node, env)
 	}
 	return nil
 }

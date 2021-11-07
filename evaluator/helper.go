@@ -227,6 +227,8 @@ func evalIndexExpression(left, index object.Object) object.Object {
 	switch {
 	case left.Type() == object.ArrayObj && index.Type() == object.IntegerObj:
 		return evalIntegerIndexExpression(left, index)
+	case left.Type() == object.HashObj:
+		return evalHashIndexExpression(left, index)
 	default:
 		return newError("index operator not supported: %s", left.Type())
 	}
@@ -241,4 +243,39 @@ func evalIntegerIndexExpression(array, index object.Object) object.Object {
 		return NULL
 	}
 	return arr.Elements[idx]
+}
+
+func evalHashIndexExpression(hash, index object.Object) object.Object {
+	h := hash.(*object.Hash)
+	idx := index.(object.Hashable)
+
+	pair, ok := h.Pairs[idx.HashKey()]
+	if ok {
+		return pair.Value
+	} else {
+		return NULL
+	}
+}
+
+func evalHashLiteral(node *ast.HashLiteral, env *object.Environment) object.Object {
+	pairs := make(map[object.HashKey]object.HashPair)
+	for keyLit, valLit := range node.Pairs {
+		keyEval := Eval(keyLit, env)
+		if isError(keyEval) {
+			return nil
+		}
+
+		keyHashEval, ok := keyEval.(object.Hashable)
+		if !ok {
+			return newError("key is not hashable")
+		}
+
+		valEval := Eval(valLit, env)
+
+		pairs[keyHashEval.HashKey()] = object.HashPair{
+			Key:   keyEval,
+			Value: valEval,
+		}
+	}
+	return &object.Hash{Pairs: pairs}
 }

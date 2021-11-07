@@ -13,3 +13,10 @@ func (i *Integer) Inspect() string {
 func (i *Integer) Type() Type {
 	return IntegerObj
 }
+
+func (i *Integer) HashKey() HashKey {
+	return HashKey{
+		Type:  i.Type(),
+		Value: uint64(i.Value),
+	}
+}
